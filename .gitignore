@@ -1,3 +1,4 @@
 .DS_Store
 *.o
 gauss-jacobi/gauss-jacobi
+gauss-seidel/gauss-seidel
