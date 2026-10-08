@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include "../common_functions.c"
 
 int diagonal_dominant(float** matrix, int i_size, int j_size) {
     for (int i = 0; i < i_size; i++) {
@@ -18,46 +19,6 @@ int diagonal_dominant(float** matrix, int i_size, int j_size) {
         if (coef > 1) return 0;
     }
     return 1;
-}
-
-float** sorted_matrix(float** matrix, int i_size, int j_size) {
-    for (int i = 0; i < i_size; i++) {
-        int max_row = i;
-        float max_val = fabs(matrix[i][i]); 
-
-        // maior valor em modulo da diagonal abaixo da linha atual
-        for (int k = i + 1; k < i_size; k++) {
-            if (fabs(matrix[k][i]) > max_val) {
-                max_val = fabs(matrix[k][i]);
-                max_row = k;
-            }
-        }
-        
-        if (max_row != i) {
-            float* temp_row = matrix[i];
-            matrix[i] = matrix[max_row];
-            matrix[max_row] = temp_row;
-        }
-    }
-
-    return matrix;
-}
-
-float* vet_difference(float* v1, float* v2, float n) {
-    float* dif = malloc(sizeof(float) * n);
-    for (int i = 0; i < n; i++) {
-        dif[i] = v1[i] - v2[i];
-    }
-
-    return dif;
-}
-
-float biggest_module(float* values, int n) {
-    float biggest = 0;
-    for (int i = 0; i < n; i++) {
-        if (fabs(values[i]) > biggest) biggest = fabs(values[i]);
-    }
-    return biggest;
 }
 
 float* gauss_jacobi(float** matrix, int i_size, int j_size, float* initial_values, float error)  {
@@ -101,3 +62,33 @@ float* gauss_jacobi(float** matrix, int i_size, int j_size, float* initial_value
 
     return new_values;
 }
+
+int main(int argc, char* argv[]) {
+    const char* filename = (argc > 1) ? argv[1] : "sistema.txt";
+
+    int i_size = 0, j_size = 0;
+    float** matrix = read_linear_system(filename, &i_size, &j_size);
+    if (!matrix) {
+        printf("Falha ao carregar o sistema a partir de '%s'.\n", filename);
+        return 1;
+    }
+
+    printf("--- Sistema Linear carregado de '%s' ---\n", filename);
+    print_matrix(matrix, i_size, j_size);
+
+    float* initial_values = calloc(i_size, sizeof(float));
+    float error = 0.0001;
+    float* solution = gauss_jacobi(matrix, i_size, j_size, initial_values, error);
+
+    printf("\nSolucao encontrada:\n");
+    for (int i = 0; i < i_size; i++) {
+        printf("x%d = %.5f\n", i + 1, solution[i]);
+    }
+
+    free(initial_values);
+    free(solution);
+    free_matrix(matrix, i_size);
+
+    return 0;
+}
+
